@@ -1,15 +1,9 @@
 import streamlit as st
 import requests
-import pymongo
 import datetime
 import plotly.express as px
 import geocoder
 from streamlit_lottie import st_lottie
-
-# MongoDB Connection
-client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["weatherDB"]
-collection = db["weather_data"]
 
 # API Configuration
 WEATHER_API_KEY = "d24586cb970848408bb84701252601"
@@ -18,6 +12,8 @@ WEATHER_API_URL = "https://api.weatherapi.com/v1/forecast.json"
 # Streamlit UI
 st.set_page_config(page_title="Weather Forecast", layout="wide")
 st.title("🌤️ Weather Forecast Application")
+
+
 
 # User Inputs
 col1, col2 = st.columns([3, 1])
@@ -28,10 +24,7 @@ with col1:
 def fetch_weather(coords, days):
     url = f"{WEATHER_API_URL}?key={WEATHER_API_KEY}&q={coords}&days={days}&aqi=yes&alerts=yes&hourly=1"
     response = requests.get(url)
-    data = response.json()
-    if data:
-        collection.insert_one({"timestamp": datetime.datetime.now(), "data": data})
-    return data
+    return response.json()
 
 # Fetch Location and Auto-search
 if col2.button("📍 Get Location"):
@@ -49,7 +42,7 @@ if col2.button("📍 Get Location"):
             st.markdown(f"**Location ID:** {location['tz_id']}")
             st.markdown(f"**Local Time:** {location['localtime']}")
             
-            # Weather Icon and Condition with Animation
+            # Weather Icon and Condition
             condition_icon = f"https:{weather_data['current']['condition']['icon']}"
             st.image(condition_icon, width=100)
             st.markdown(f"**Condition:** {weather_data['current']['condition']['text']}")
@@ -122,7 +115,7 @@ if st.button("🔍 Search"):
         st.markdown(f"**Location ID:** {location['tz_id']}")
         st.markdown(f"**Local Time:** {location['localtime']}")
         
-        # Weather Icon and Condition with Animation
+        # Weather Icon and Condition
         condition_icon = f"https:{weather_data['current']['condition']['icon']}"
         st.image(condition_icon, width=100)
         st.markdown(f"**Condition:** {weather_data['current']['condition']['text']}")
@@ -181,4 +174,4 @@ if st.button("🔍 Search"):
         fig4 = px.line(x=hourly_times, y=hourly_feelslike, labels={"x": "Time", "y": "Feels Like Temperature (°C)"}, title="Hourly Feels Like Temperature")
         st.plotly_chart(fig4)
     else:
-        st.error("Failed to retrieve weather data. Please try again.") 
+        st.error("Failed to retrieve weather data. Please try again.")
